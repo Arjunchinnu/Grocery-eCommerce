@@ -27,9 +27,10 @@ app.use(express.json());
 app.use(cookieParser());
 
 //cors configuration
-const allowedOrigins = ["http://localhost:5173"];
-
-// app.post("/stripe", express.raw({ type: "application/json" }), stripeWebhook);
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://grocery-ecommerce-client-gz0a.onrender.com",
+];
 
 app.use(
   cors({
@@ -63,5 +64,3 @@ startServer();
 app.get("/", (req, res) => {
   res.send("API is working");
 });
-
-// 10 07
