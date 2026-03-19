@@ -136,7 +136,7 @@ export const placeOrderStripe = async (req, res) => {
       cancel_url: `${origin}/cart`,
       metadata: {
         orderId: order._id.toString(),
-        userId,
+        userId: userId.toString(),
       },
     });
 
@@ -174,7 +174,7 @@ export const getOrders = async (req, res) => {
 
 export const stripeWebhook = async (req, res) => {
   try {
-    
+    console.log("🔥 WEBHOOK HIT");
     const sig = req.headers["stripe-signature"];
     let event;
 
@@ -200,7 +200,6 @@ export const stripeWebhook = async (req, res) => {
 
           // Clear user cart
           await User.findByIdAndUpdate(userId, { cartItems: {} });
-
         }
 
         break;
