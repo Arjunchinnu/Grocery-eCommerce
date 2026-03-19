@@ -368,8 +368,8 @@ export const placeOrderStripe = async (req, res) => {
       payment_method_types: ["card"],
       line_items,
       mode: "payment",
-      success_url: `${process.env.CLIENT_URL}/loader?next=my-orders`,
-      cancel_url: `${process.env.CLIENT_URL}/cart`,
+      success_url: `${process.env.VITE_CLIENT_URL}/loader?next=my-orders`,
+      cancel_url: `${process.env.VITE_CLIENT_URL}/cart`,
       metadata: {
         orderId: order._id.toString(),
         userId: userId.toString(),
