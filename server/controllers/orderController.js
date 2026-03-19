@@ -190,21 +190,46 @@ export const stripeWebhook = async (req, res) => {
     }
 
     switch (event.type) {
-      case "checkout.session.completed": {
-        const session = event.data.object;
-        const { orderId, userId } = session.metadata;
+      // case "checkout.session.completed": {
+      //   const session = event.data.object;
+      //   const { orderId, userId } = session.metadata;
 
-        if (orderId && userId) {
-          // Mark order paid
-          await Order.findByIdAndUpdate(orderId, { isPaid: true });
+      //   if (orderId && userId) {
+      //     // Mark order paid
+      //     await Order.findByIdAndUpdate(orderId, { isPaid: true });
 
-          // Clear user cart
-          await User.findByIdAndUpdate(userId, { cartItems: {} });
+      //     // Clear user cart
+      //     await User.findByIdAndUpdate(userId, { cartItems: {} });
+      //   }
+
+      //   break;
+      // }
+
+      case "payment_intent.succeeded": {
+        const paymentIntent = event.data.object;
+
+        console.log("🔥 PAYMENT SUCCESS:", paymentIntent.id);
+
+        // You need to fetch session to get metadata
+        const sessions = await stripe.checkout.sessions.list({
+          payment_intent: paymentIntent.id,
+        });
+
+        const session = sessions.data[0];
+
+        if (!session) {
+          console.log("❌ No session found");
+          break;
         }
 
+        const { orderId, userId } = session.metadata;
+
+        await Order.findByIdAndUpdate(orderId, { isPaid: true });
+        await User.findByIdAndUpdate(userId, { cartItems: {} });
+
+        console.log("✅ Order updated:", orderId);
         break;
       }
-
       default:
         console.log(`Unhandled Stripe event: ${event.type}`);
     }
