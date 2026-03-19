@@ -257,7 +257,6 @@
 //     res.json({ success: false, message: err.message });
 //   }
 // };
-
 import Order from "../models/Order.js";
 import Product from "../models/Product.js";
 import Stripe from "stripe";
@@ -278,9 +277,7 @@ export const placeOrder = async (req, res) => {
       items.map(async (item) => {
         const product = await Product.findById(item.productId);
 
-        if (!product) {
-          throw new Error(`Product not found: ${item.productId}`);
-        }
+        if (!product) throw new Error(`Product not found: ${item.productId}`);
 
         return {
           product: item.productId,
@@ -294,15 +291,11 @@ export const placeOrder = async (req, res) => {
       (acc, item) => acc + item.quantity * item.price,
       0,
     );
-
-    amount += Math.floor(amount * 0.02);
+    amount += Math.floor(amount * 0.02); // 2% tax
 
     await Order.create({
       userId,
-      items: orderItems.map(({ product, quantity }) => ({
-        product,
-        quantity,
-      })),
+      items: orderItems.map(({ product, quantity }) => ({ product, quantity })),
       amount,
       address,
       paymentType: "cod",
@@ -320,6 +313,7 @@ export const placeOrder = async (req, res) => {
 export const placeOrderStripe = async (req, res) => {
   try {
     const { userId, items, address } = req.body;
+    const { origin } = req.headers;
 
     if (!userId || !items || !address || items.length === 0) {
       return res.json({ success: false, message: "All fields are required" });
@@ -328,10 +322,7 @@ export const placeOrderStripe = async (req, res) => {
     const orderItems = await Promise.all(
       items.map(async (item) => {
         const product = await Product.findById(item.productId);
-
-        if (!product) {
-          throw new Error(`Product not found: ${item.productId}`);
-        }
+        if (!product) throw new Error(`Product not found: ${item.productId}`);
 
         return {
           product: item.productId,
@@ -345,9 +336,7 @@ export const placeOrderStripe = async (req, res) => {
     const line_items = orderItems.map((item) => ({
       price_data: {
         currency: "inr",
-        product_data: {
-          name: item.name,
-        },
+        product_data: { name: item.name },
         unit_amount: item.price * 100,
       },
       quantity: item.quantity,
@@ -357,7 +346,6 @@ export const placeOrderStripe = async (req, res) => {
       (acc, item) => acc + item.quantity * item.price,
       0,
     );
-
     amount += Math.floor(amount * 0.02);
 
     if (amount < 50) {
@@ -369,33 +357,26 @@ export const placeOrderStripe = async (req, res) => {
 
     const order = await Order.create({
       userId,
-      items: orderItems.map(({ product, quantity }) => ({
-        product,
-        quantity,
-      })),
+      items: orderItems.map(({ product, quantity }) => ({ product, quantity })),
       amount,
       address,
       paymentType: "online",
       isPaid: false,
     });
 
-    // ✅ IMPORTANT FIX: use env URL instead of origin
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       line_items,
       mode: "payment",
-      success_url: `https://grocery-ecommerce-client-gz0a.onrender.com/loader?next=my-orders`,
-      cancel_url: `https://grocery-ecommerce-client-gz0a.onrender.com/cart`,
+      success_url: `${process.env.CLIENT_URL}/loader?next=my-orders`,
+      cancel_url: `${process.env.CLIENT_URL}/cart`,
       metadata: {
         orderId: order._id.toString(),
         userId: userId.toString(),
       },
     });
 
-    res.json({
-      success: true,
-      url: session.url,
-    });
+    res.json({ success: true, url: session.url });
   } catch (err) {
     console.log("error in stripe order controller", err.message);
     res.json({ success: false, message: err.message });
@@ -422,44 +403,23 @@ export const getOrders = async (req, res) => {
   }
 };
 
-// STRIPE WEBHOOK
+// STRIPE WEBHOOK HANDLER
 export const stripeWebhook = async (req, res) => {
   console.log("🔥 WEBHOOK HIT");
 
   try {
     const sig = req.headers["stripe-signature"];
-    let event;
 
-    try {
-      event = stripe.webhooks.constructEvent(
-        req.body,
-        sig,
-        process.env.STRIPE_WEBHOOK_SECRET,
-      );
-    } catch (err) {
-      console.log("❌ Signature error:", err.message);
-      return res.status(400).send(`Webhook Error: ${err.message}`);
-    }
+    const event = stripe.webhooks.constructEvent(
+      req.body, // raw body required
+      sig,
+      process.env.STRIPE_WEBHOOK_SECRET,
+    );
 
-    console.log("👉 Event:", event.type);
+    console.log("👉 Event received:", event.type);
 
-    // ✅ FINAL WORKING EVENT
-    if (event.type === "payment_intent.succeeded") {
-      const paymentIntent = event.data.object;
-
-      console.log("💰 Payment success:", paymentIntent.id);
-
-      const sessions = await stripe.checkout.sessions.list({
-        payment_intent: paymentIntent.id,
-      });
-
-      const session = sessions.data[0];
-
-      if (!session) {
-        console.log("❌ No session found");
-        return res.status(200).json({ received: true });
-      }
-
+    if (event.type === "checkout.session.completed") {
+      const session = event.data.object;
       const { orderId, userId } = session.metadata;
 
       if (orderId && userId) {
@@ -472,12 +432,12 @@ export const stripeWebhook = async (req, res) => {
 
     res.status(200).json({ received: true });
   } catch (err) {
-    console.error("❌ Webhook error:", err);
-    res.status(500).send();
+    console.error("❌ Webhook error:", err.message);
+    res.status(400).send(`Webhook Error: ${err.message}`);
   }
 };
 
-// GET ALL ORDERS
+// GET ALL ORDERS (SELLER / ADMIN)
 export const getAllOrders = async (req, res) => {
   try {
     const orders = await Order.find({
