@@ -20,6 +20,7 @@ import Orders from "./pages/seller/Orders";
 import Loading from "./components/Loading";
 import ForgotPassword from "./pages/ForgotPassword";
 import PasswordReset from "./pages/PasswordReset";
+import Contact from "./pages/Contact";
 
 const App = () => {
   const isSellerPath = useLocation().pathname.includes("seller");
@@ -35,6 +36,7 @@ const App = () => {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/products" element={<AllProducts />} />
+          <Route path="/contact" element={<Contact />} />
           <Route path="/products/:category" element={<ProductCategory />} />
           <Route path="/products/:category/:id" element={<ProductDetails />} />
           <Route path="/cart" element={<Cart />} />
