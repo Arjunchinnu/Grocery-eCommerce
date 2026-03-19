@@ -384,8 +384,8 @@ export const placeOrderStripe = async (req, res) => {
       payment_method_types: ["card"],
       line_items,
       mode: "payment",
-      success_url: `${process.env.CLIENT_URL}/loader?next=my-orders`,
-      cancel_url: `${process.env.CLIENT_URL}/cart`,
+      success_url: `https://grocery-ecommerce-client-gz0a.onrender.com/loader?next=my-orders`,
+      cancel_url: `https://grocery-ecommerce-client-gz0a.onrender.com/cart`,
       metadata: {
         orderId: order._id.toString(),
         userId: userId.toString(),
