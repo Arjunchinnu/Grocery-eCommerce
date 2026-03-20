@@ -411,11 +411,20 @@ export const stripeWebhook = async (req, res) => {
   try {
     const sig = req.headers["stripe-signature"];
 
-    const event = stripe.webhooks.constructEvent(
-      req.body, // raw body required
-      sig,
-      process.env.STRIPE_WEBHOOK_SECRET,
-    );
+    // const event = stripe.webhooks.constructEvent(
+    //   req.body, // raw body required
+    //   sig,
+    //   process.env.STRIPE_WEBHOOK_SECRET,
+    // );
+
+    const event =
+      process.env.NODE_ENV === "development"
+        ? { type: "checkout.session.completed", data: { object: req.body } }
+        : stripe.webhooks.constructEvent(
+            req.body,
+            sig,
+            process.env.STRIPE_WEBHOOK_SECRET,
+          );
 
     console.log("👉 Event received:", event.type);
 
