@@ -13,8 +13,8 @@ import connectCloudinary from "./configs/cloudinary.js";
 import { stripeWebhook } from "./controllers/orderController.js";
 import forgotRouter from "./routes/forgotPassword.js";
 //testing
-import Order from "./models/Order.js";
-import User from "./models/User.js";
+// import Order from "./models/Order.js";
+// import User from "./models/User.js";
 const app = express();
 const port = process.env.PORT || 4000;
 
@@ -52,23 +52,23 @@ app.use("/api/order", orderRouter);
 app.use("/api/auth", forgotRouter);
 
 // Temporary test route to mark order as paid via browser
-app.get("/api/test-pay/:orderId/:userId", async (req, res) => {
-  const { orderId, userId } = req.params;
-  try {
-    const updatedOrder = await Order.findByIdAndUpdate(
-      orderId,
-      { isPaid: true },
-      { new: true }
-    );
-    await User.findByIdAndUpdate(userId, { cartItems: {} });
+// app.get("/api/test-pay/:orderId/:userId", async (req, res) => {
+//   const { orderId, userId } = req.params;
+//   try {
+//     const updatedOrder = await Order.findByIdAndUpdate(
+//       orderId,
+//       { isPaid: true },
+//       { new: true }
+//     );
+//     await User.findByIdAndUpdate(userId, { cartItems: {} });
 
-    console.log("✅ Test Order updated:", orderId);
-    res.json({ success: true, updatedOrder });
-  } catch (err) {
-    console.log("❌ Test pay error:", err.message);
-    res.status(500).json({ success: false, message: err.message });
-  }
-});
+//     console.log("✅ Test Order updated:", orderId);
+//     res.json({ success: true, updatedOrder });
+//   } catch (err) {
+//     console.log("❌ Test pay error:", err.message);
+//     res.status(500).json({ success: false, message: err.message });
+//   }
+// });
 
 const startServer = async () => {
   try {
