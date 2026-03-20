@@ -12,6 +12,9 @@ import orderRouter from "./routes/orderRoute.js";
 import connectCloudinary from "./configs/cloudinary.js";
 import { stripeWebhook } from "./controllers/orderController.js";
 import forgotRouter from "./routes/forgotPassword.js";
+//testing
+import Order from "./models/Order.js";
+import User from "./models/User.js";
 const app = express();
 const port = process.env.PORT || 4000;
 
