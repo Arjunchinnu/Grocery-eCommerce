@@ -16,6 +16,7 @@ const app = express();
 const port = process.env.PORT || 4000;
 
 /* STRIPE WEBHOOK (MUST BE BEFORE JSON) */
+console.log("🚀 Setting up Stripe webhook route...");
 app.post(
   "/api/order/webhook",
   express.raw({ type: "application/json" }),
