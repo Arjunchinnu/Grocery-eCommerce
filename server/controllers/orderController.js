@@ -312,6 +312,7 @@ export const placeOrder = async (req, res) => {
 // PLACE ORDER WITH STRIPE
 export const placeOrderStripe = async (req, res) => {
   try {
+    console.log("🔥 PLACE ORDER STRIPE HIT");
     const { userId, items, address } = req.body;
     const { origin } = req.headers;
 
