@@ -21,7 +21,6 @@ const Orders = () => {
 
       if (data.success) {
         setOrders(data.orders);
-        console.log("Orders fetched:", data.orders);
       } else {
         toast.error(data.message);
       }
