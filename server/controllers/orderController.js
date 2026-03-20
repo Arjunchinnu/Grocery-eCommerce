@@ -257,6 +257,7 @@
 //     res.json({ success: false, message: err.message });
 //   }
 // };
+
 import Order from "../models/Order.js";
 import Product from "../models/Product.js";
 import Stripe from "stripe";
@@ -264,21 +265,20 @@ import User from "../models/User.js";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
-// PLACE ORDER (COD)
+// ------------------------
+// COD Order
+// ------------------------
 export const placeOrder = async (req, res) => {
   try {
     const { userId, items, address } = req.body;
 
-    if (!userId || !items || !address || items.length === 0) {
+    if (!userId || !items || !address || items.length === 0)
       return res.json({ success: false, message: "All fields are required" });
-    }
 
     const orderItems = await Promise.all(
       items.map(async (item) => {
         const product = await Product.findById(item.productId);
-
         if (!product) throw new Error(`Product not found: ${item.productId}`);
-
         return {
           product: item.productId,
           quantity: item.quantity,
@@ -291,7 +291,7 @@ export const placeOrder = async (req, res) => {
       (acc, item) => acc + item.quantity * item.price,
       0,
     );
-    amount += Math.floor(amount * 0.02); // 2% tax
+    amount += Math.floor(amount * 0.02);
 
     await Order.create({
       userId,
@@ -309,22 +309,21 @@ export const placeOrder = async (req, res) => {
   }
 };
 
-// PLACE ORDER WITH STRIPE
+// ------------------------
+// Stripe Order
+// ------------------------
 export const placeOrderStripe = async (req, res) => {
   try {
     console.log("🔥 PLACE ORDER STRIPE HIT");
     const { userId, items, address } = req.body;
-    const { origin } = req.headers;
 
-    if (!userId || !items || !address || items.length === 0) {
+    if (!userId || !items || !address || items.length === 0)
       return res.json({ success: false, message: "All fields are required" });
-    }
 
     const orderItems = await Promise.all(
       items.map(async (item) => {
         const product = await Product.findById(item.productId);
         if (!product) throw new Error(`Product not found: ${item.productId}`);
-
         return {
           product: item.productId,
           quantity: item.quantity,
@@ -349,12 +348,11 @@ export const placeOrderStripe = async (req, res) => {
     );
     amount += Math.floor(amount * 0.02);
 
-    if (amount < 50) {
+    if (amount < 50)
       return res.json({
         success: false,
         message: "Minimum order amount for online payment is ₹50",
       });
-    }
 
     const order = await Order.create({
       userId,
@@ -371,10 +369,7 @@ export const placeOrderStripe = async (req, res) => {
       mode: "payment",
       success_url: `${process.env.VITE_CLIENT_URL}/loader?next=my-orders`,
       cancel_url: `${process.env.VITE_CLIENT_URL}/cart`,
-      metadata: {
-        orderId: order._id.toString(),
-        userId: userId.toString(),
-      },
+      metadata: { orderId: order._id.toString(), userId: userId.toString() },
     });
 
     res.json({ success: true, url: session.url });
@@ -384,7 +379,9 @@ export const placeOrderStripe = async (req, res) => {
   }
 };
 
-// GET USER ORDERS
+// ------------------------
+// Get user orders
+// ------------------------
 export const getOrders = async (req, res) => {
   try {
     const { userId } = req.query;
@@ -404,18 +401,14 @@ export const getOrders = async (req, res) => {
   }
 };
 
-// STRIPE WEBHOOK HANDLER
+// ------------------------
+// Stripe Webhook
+// ------------------------
 export const stripeWebhook = async (req, res) => {
   console.log("🔥 WEBHOOK HIT");
 
   try {
     const sig = req.headers["stripe-signature"];
-
-    // const event = stripe.webhooks.constructEvent(
-    //   req.body, // raw body required
-    //   sig,
-    //   process.env.STRIPE_WEBHOOK_SECRET,
-    // );
 
     const event =
       process.env.NODE_ENV === "development"
@@ -447,7 +440,9 @@ export const stripeWebhook = async (req, res) => {
   }
 };
 
-// GET ALL ORDERS (SELLER / ADMIN)
+// ------------------------
+// Get all orders (admin/seller)
+// ------------------------
 export const getAllOrders = async (req, res) => {
   try {
     const orders = await Order.find({
