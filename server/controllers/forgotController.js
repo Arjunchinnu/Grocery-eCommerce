@@ -38,7 +38,7 @@ export const forgotPassword = async (req, res) => {
   // console.log("google email ", process.env.APP_EMAIL);
 
   await transporter.sendMail({
-    from: `"Streamify" <${process.env.EMAIL}>`,
+    from: `"Streamify" <${process.env.APP_EMAIL}>`,
     to: email,
     subject: "Password Reset",
     html: `
