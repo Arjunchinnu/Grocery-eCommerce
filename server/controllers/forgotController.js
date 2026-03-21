@@ -21,7 +21,7 @@ export const forgotPassword = async (req, res) => {
 
   await user.save();
 
-  const resetLink = `https://my-portfolio-backend-e8l7.onrender.com/reset-password/${token}`;
+  const resetLink = `https://grocery-ecommerce-gp5s.onrender.com/reset-password/${token}`;
 
   // email setup
   const transporter = nodemailer.createTransport({
