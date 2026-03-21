@@ -25,10 +25,12 @@ export const forgotPassword = async (req, res) => {
 
   // email setup
   const transporter = nodemailer.createTransport({
-    service: "gmail",
+    host: "smtp-relay.brevo.com",
+    port: 2525,
+    secure: false,
     auth: {
-      user: process.env.APP_EMAIL,
-      pass: process.env.APP_PASS_RESET,
+      user: process.env.SMTP_USER,
+      pass: process.env.SMTP_PASS,
     },
   });
 
@@ -36,9 +38,14 @@ export const forgotPassword = async (req, res) => {
   // console.log("google email ", process.env.APP_EMAIL);
 
   await transporter.sendMail({
+    from: `"Streamify" <${process.env.EMAIL}>`,
     to: email,
-    subject: "Reset Password",
-    html: `Click here to reset password: <a href="${resetLink}">${resetLink}</a>`,
+    subject: "Password Reset",
+    html: `
+        <h1>Password Reset Request</h1>
+        <p>You requested a password reset. Click below:</p>
+        <a href="${resetLink}">Reset Password</a>
+      `,
   });
 
   res.json({
