@@ -21,7 +21,7 @@ export const forgotPassword = async (req, res) => {
 
   await user.save();
 
-  const resetLink = `http://localhost:5173/reset-password/${token}`;
+  const resetLink = `https://my-portfolio-backend-e8l7.onrender.com/reset-password/${token}`;
 
   // email setup
   const transporter = nodemailer.createTransport({
@@ -32,8 +32,8 @@ export const forgotPassword = async (req, res) => {
     },
   });
 
-  console.log("google passcode ", process.env.APP_PASS_RESET);
-  console.log("google email ", process.env.APP_EMAIL);
+  // console.log("google passcode ", process.env.APP_PASS_RESET);
+  // console.log("google email ", process.env.APP_EMAIL);
 
   await transporter.sendMail({
     to: email,
